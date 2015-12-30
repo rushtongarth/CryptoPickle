@@ -13,7 +13,7 @@ class CryptoPickle(object):
 		_js = json.dumps(towrite)
 		_encrypted = str(self.gpg.encrypt(_js,self.c.u))
 		with open(_ftoUse,'wb') as _f:
-			cpk.dump(_encrypted,_f)
+			cpk.dump(_encrypted,_f,-1)
 		
 	def fread(self):
 		_ftoUse = self.c.getcryptname()
