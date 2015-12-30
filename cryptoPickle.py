@@ -4,7 +4,6 @@ from config import storageinfo
 
 class CryptoPickle(object):
 	def __init__(self,configinfo):
-		#self.details = configinfo
 		self.gpg = gnupg.GPG()
 		self.gpg.gnupghome = configinfo.h
 		self.c = configinfo
