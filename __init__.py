@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -18,6 +17,4 @@ def get_version():
 	return '.'.join(str(i) for i in VERSION)
 
 __version__ = get_version()
-=======
 
->>>>>>> master
