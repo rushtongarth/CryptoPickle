@@ -1,6 +1,6 @@
 
 import json,os,gnupg,getpass,cPickle as cpk
-from config import storageinfo
+
 
 class CryptoPickle(object):
 	def __init__(self,configinfo):
