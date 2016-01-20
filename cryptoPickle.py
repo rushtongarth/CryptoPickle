@@ -1,5 +1,5 @@
 
-import json,os,gnupg,getpass,cPickle as cpk
+import json,gnupg,cPickle as cpk
 
 
 class CryptoPickle(object):
@@ -19,7 +19,7 @@ class CryptoPickle(object):
 		_ftoUse = self.c.getcryptname()
 		with open(_ftoUse,'rb') as _f:
 			_cj = cpk.load(_f)
-		_decrypted = str(self.gpg.decrypt(_cj))
+		_decrypted = str(self.gpg.decrypt(_cj,passphrase=self.c.p))
 		return json.loads(_decrypted)
 
 	def getkeys(self):
