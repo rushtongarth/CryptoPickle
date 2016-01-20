@@ -8,8 +8,11 @@ __desc__ = 'CryptoPickle is a cryptographic method of storing python pickles'
 # Package analogous to CLI of 'gpg' but using python
 #
 # cryptoPickle/__init__.py
-from cryptoPickle import *
 
+from cryptoPickle import CryptoPickle
+from config import storageinfo
+
+__all__ = ['config','cryptoPickle']
 
 VERSION = (0,0,1)
 
