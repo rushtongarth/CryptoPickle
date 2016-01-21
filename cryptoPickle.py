@@ -22,7 +22,7 @@ class CryptoPickle(object):
 		_decrypted = str(self.gpg.decrypt(_cj,passphrase=self.c.p))
 		return json.loads(_decrypted)
 
-	def getkeys(self):
+	def keys(self):
 		return self.fread().keys()
 	def keycheck(self,indict):
 		keys = self.getkeys()
