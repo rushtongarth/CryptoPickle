@@ -3,11 +3,11 @@ Cryptographic Python Pickles with gnupg
 
 ## Basic Usage
     >>> import os
-    >>> import cryptoPickle
+    >>> import CryptoPickle
     >>> you = 'keyuser'
     >>> thisloc = '/path/to/gnupg/keys'
     >>> info_object = cryptoPickle.storageinfo()
-    >>> info_object_call = info(keyuser=os.getenv("USER"),loc=thisloc)
+    >>> info_object_call = info(keyuser=you,loc=thisloc)
     Password:
     >>> cyp = cryptoPickle.CryptoPickle(info_object_call)
     >>> k = cyp.getkeys()
