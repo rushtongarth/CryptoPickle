@@ -1,54 +1,61 @@
-## This is about to undergo some serious changes...
-## hang tight
-import json,gnupg,cPickle as cpk
+import os,json,gnupg,cPickle as cpk
+import getpass
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+thisdir = os.path.expanduser("~")+os.sep+'.gnupg'
+thisusr = os.getenv("USER")
+stdname = 'keys.cfg'
 
-
-class CryptoPickle(object):
-	def __init__(self,configinfo):
+class CryptoPickle(dict):
+	defaultGpgHome = os.path.join('~','.gnupg')
+	defaultUser = os.getenv('USER')
+	defaultDirList = [os.getcwd(),os.getcwd()]
+	defaultInfile = 'keys.cfg'
+	defaultOutfile = 'keys.crypto.cfg'
+	def __init__(self,**kwargs):
 		self.gpg = gnupg.GPG()
-		self.gpg.gnupghome = configinfo.h
-		self.c = configinfo
-
-	def fwrite(self,towrite):
-		_ftoUse = self.c.getcryptname()
-		_js = json.dumps(towrite)
-		_encrypted = str(self.gpg.encrypt(_js,self.c.u))
-		with open(_ftoUse,'wb') as _f:
-			cpk.dump(_encrypted,_f,-1)
-		
-	def fread(self):
-		_ftoUse = self.c.getcryptname()
-		with open(_ftoUse,'rb') as _f:
-			_cj = cpk.load(_f)
-		_decrypted = str(self.gpg.decrypt(_cj,passphrase=self.c.p))
-		return json.loads(_decrypted)
-
-	def keys(self):
-		return self.fread().keys()
-	def keycheck(self,indict):
-		keys = self.getkeys()
-		return [(i in keys,i) for i in indict.keys()]
-
-	def update(self,direct,changedict):
-		_updatelist = self.keycheck(changedict)
-		if direct=='add':
-			self._push({j:changedict[j] for i,j in _updatelist if not i})
-		elif direct=='remove':
-			self._pop({j:changedict[j] for i,j in _updatelist if i})
-		elif direct=='keyval':
-			self._upkey({j:changedict[j] for i,j in _updatelist if i})
+		self.ci = PKCS1_OAEP.new(RSA.generate(2048))
+		self.u = kwargs.get('user',self.defaultUser)
+		h = kwargs.get('gpghome',self.defaultGpgHome)
+		if not h.startswith('~'):
+			self.gpg.gnupghome = h
 		else:
-			raise KeyError("Unknown Command: %s"%(direct))
+			self.gpg.gnupghome = os.path.expanduser(h)
+	def __call__(self,pswd=None,**kwargs):
+		dirlist = kwargs.pop('inoutdirs',self.defaultDirList)
+		if not isinstance(dirlist,list):
+			dirlist = [dirlist]
+		if len(dirlist)==1:
+			indir,outdir=dirlist,dirlist
+		elif len(dirlist)==2:
+			indir,outdir=dirlist
+		else:
+			msg = 'Directory listing must be length 1 or 2\n'
+			msg +='received argument of length %i'%len(dirlist)
+			raise IOError(msg)
+		indir,outdir = dirlist
+		infile = kwargs.pop('infile',self.defaultInfile)
+		outfile= kwargs.pop('outfile',self.defaultOutfile)
+		self.infile = os.path.join(indir,infile)
+		self.outfile = os.path.join(outdir,outfile)
+		self.pswd = self.ci.encrypt(pswd if pswd else getpass.getpass())
+		return self
+	def __getitem__(self,key):
+		try:
+			with open(self.infile,'rb') as __f:
+				pkl = cpk.load(__f)
+				__D = str(self.gpg.decrypt(pkl,passphrase=self.ci.decrypt(self.pswd)))
+				return json.loads(__D)[key]
+		finally:
+			__f.close()
 
-	def _push(self,toadd):
-		_dcDict = self.fread()
-		_dcDict.update(toadd)
-		self.fwrite(_dcDict)
-	def _pop(self,torm):
-		_dcDict = self.fread()
-		_ = map(lambda k: _dcDict.pop(k),torm.keys())
-		self.fwrite(_dcDict)
-	def _upkey(self,toupdate):
-		_dcDict = self.fread()
-		_dcDict.update(toupdate)
-		self.fwrite(_dcDict)
+	def __setitem__(self,key,val):
+		try:
+			
+			__e = self.gpg.encrypt(json.dumps({key:val}),self.c.u)
+			with open(self.c.getcryptname(),'wb') as __f:
+				cpk.dump(str(__e),__f,-1)
+		except KeyError as e:
+			raise e
+		finally:
+			__f.close()
