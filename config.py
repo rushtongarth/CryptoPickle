@@ -21,7 +21,7 @@ class storageinfo(object):
 
 	def __call__(self,**kwargs):
 		info = storageinfo(**kwargs)
-		if info.p is None:
+		if not hasattr(info,'p'):
 			info.p = getpass.getpass()
 		return info
 
