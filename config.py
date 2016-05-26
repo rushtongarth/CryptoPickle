@@ -18,12 +18,15 @@ class storageinfo(object):
 		self.h = kwargs.get('home',thisdir)
 		f = kwargs.get('loc',stdname)
 		self.keydir,self.keyfile=os.path.split(f)
+		self.p = kwargs.get('p',None)
 
 	def __call__(self,**kwargs):
-		info = storageinfo(**kwargs)
-		if not hasattr(info,'p'):
-			info.p = getpass.getpass()
-		return info
+		if self.p is None:
+			if kwargs.has_key('p'):
+				self.p = kwargs.get('p')
+			else:
+				self.p = getpass.getpass()
+		return self
 
 	def getcryptname(self):
 		if not 'crypto' in self.keyfile:
